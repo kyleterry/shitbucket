@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -15,6 +17,12 @@ import (
 // Structs and Vars
 const (
 	version = "0.1.0"
+)
+
+var (
+	defaultWorkingDir = os.Getenv("HOME") + "/.config/shitbucket/"
+	defaultDBFile = "shitbucket.db"
+	defaultDBPath = defaultWorkingDir + defaultDBFile
 )
 
 // Structs
@@ -35,6 +43,19 @@ type RunCommand struct {
 	Meta
 }
 
+type Url struct {
+	Id int
+	Url string
+	UrlTitle string
+	Source string
+	CreatedAt time.Time
+}
+
+type Tag struct {
+	Id int
+	Name string
+}
+
 // Methods for commands
 func (c *AdminCommand) Run(args []string) int {
 	return 1
@@ -49,12 +70,13 @@ func (c *AdminCommand) Synopsis() string {
 }
 
 func (c *SetupCommand) Run(args []string) int {
-	return 1
+	os.Mkdir(defaultWorkingDir, 0700)
+	return 0
 }
 
 func (c *SetupCommand) Synopsis() string {
 
-	return "Not implemented yet"
+	return "Sets up shitbucket for the fist time"
 }
 
 func (c *SetupCommand) Help() string {
@@ -66,9 +88,13 @@ func (c *RunCommand) Run(args []string) int {
 	var bind string
 	cmdFlags := flag.NewFlagSet("Run", flag.ContinueOnError)
 	cmdFlags.StringVar(&bind, "bind", ":8080", "bind")
+	cmdFlags.StringVar(&defaultDBFile, "db-location", defaultDBPath, "bind")
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
+	log.Printf("Listening on %s", bind)
+	log.Printf("DB location %s", defaultDBPath)
+
 	err := wrappedrun(bind)
 	if err != nil{
 		return 1
@@ -86,8 +112,11 @@ Usage: shitbucket run [options]
 	Start a shitbucket web server.
 
 Options:
-	-bind	Set how the server should bind. E.g. -bind "localhost:9090"
-			Default is ":8080".
+	-bind			Set how the server should bind. E.g. -bind "localhost:9090"
+					Default is ":8080".
+
+	-db-location	Location to the sqlite database
+					Default is ${HOME}/.config/shitbucket/shitbucket.db
 `
 	return help
 }

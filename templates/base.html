@@ -9,12 +9,12 @@
     <body>
         <header>
             <div id="header-content">
-                <h1 id="logo"><a href="/?auth_key={{auth_key}}">Shitbucket</a></h1>
+                <h1 id="logo"><a href="/?auth_key=">Shitbucket</a></h1>
             </div>
         </header>
         <div id="content">
         {% block page_title %}{% endblock %}
-        {% block content %}{% endblock %}
+        {{ yield }}
         </div>
         <footer>
             <div id="footer-content">
