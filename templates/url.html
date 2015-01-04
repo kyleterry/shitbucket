@@ -1,0 +1,7 @@
+{{ $url := . }}
+<div class="url-item">
+    <h3>
+        <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
+    </h3>
+    <p><small>{{ $url.CreatedAt }} - {{ $url.Url }}</small></p>
+</div>
