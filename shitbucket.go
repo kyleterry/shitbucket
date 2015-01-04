@@ -316,10 +316,6 @@ func NewUrl(rend render.Render) {
 	rend.HTML(http.StatusOK, "add", nil)
 }
 
-func UpdateUrl(params martini.Params) string {
-	return fmt.Sprintf("update %s", params["id"])
-}
-
 func DeleteUrl(params martini.Params) string {
 	return fmt.Sprintf("delete %s", params["id"])
 }
@@ -345,7 +341,6 @@ func wrappedrun(bind string) error {
 	m.Group("/url", func(r martini.Router) {
 		r.Get("/new", NewUrl)
 		r.Post("/submit", AddUrl)
-		r.Put("/update/:id", UpdateUrl)
 		r.Delete("/delete/:id", DeleteUrl)
 		r.Get("/:id", GetUrl)
 	})
