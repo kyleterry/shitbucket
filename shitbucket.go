@@ -274,8 +274,10 @@ func GetUrls(rend render.Render) {
 	}
 	urldata := struct {
 		Urls []*Url
+		Count int
 	} {
 		Urls: urls,
+		Count: len(urls),
 	}
 	rend.HTML(http.StatusOK, "index", urldata)
 }

@@ -1,6 +1,8 @@
 <h2>List of shit</h2>
 <p><small><a href="/url/new">Add url</a></small></p>
 
+{{if .Count}}
+<p>Found {{ .Count }} URLs</p>
 {{range $url := .Urls }}
 <div class="url-item">
     <h3>
@@ -9,4 +11,6 @@
     <p><small>{{ $url.CreatedAt }} - {{ $url.Url }}</small></p>
 </div>
 {{ end }}
+{{else}}
 <p>There is nothing here but silence.</p>
+{{ end }}
