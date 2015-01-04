@@ -1,19 +1,14 @@
 {% extends "base.html" %}
 
-{% block page_title %}
 <h2>List of shit</h2>
 <p><small><a href="/url/submit?auth_key=">Add url</a></small></p>
-{% endblock %}
 
-{% block content %}
-{% for url in urls %}
+{{range $url := .Urls }}
 <div class="url-item">
     <h3>
-        <a href="" target="_blank"></a>
+        <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
     </h3>
     <p><small>-</small></p>
 </div>
-{% else %}
+{{ end }}
 <p>There is nothing here but silence.</p>
-{% endfor %}
-{% endblock %}

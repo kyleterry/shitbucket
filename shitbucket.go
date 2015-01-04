@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
 	"flag"
@@ -162,27 +163,51 @@ func buildSubmitPath() string {
 						defaultDBName)
 }
 
-func getUrlData(url string) (Url, error) {
-	urlData := Url{}
-	response, err := http.Get(buildUrlPath(url))
+func buildPrefixMatchPath(prefix string) string {
+	path := fmt.Sprintf("http://%s/%s/%s:%s/_match",
+						defaultDBBind,
+						defaultDBName,
+						defaultDBKeyNamespace,
+						prefix)
+	return path
+}
+
+func buildPathFromKey(key string) string {
+	path := fmt.Sprintf("http://%s/%s/%s",
+						defaultDBBind,
+						defaultDBName,
+						key)
+	return path
+}
+
+func getUrlData(urlpath string) (Url, error) {
+	urldata := Url{}
+	response, err := http.Get(urlpath)
 	if err != nil || response.StatusCode == 404 {
-		return urlData, err
+		return urldata, err
 	}
 	contents, err := ioutil.ReadAll(response.Body)
+	defer response.Body.Close()
 	if err != nil {
-		return urlData, err
+		return urldata, err
 	}
-	json.Unmarshal([]byte(contents), &urlData)
-	return urlData, nil
+	json.Unmarshal([]byte(contents), &urldata)
+	return urldata, nil
+}
+
+func getUrlDataFromUrl(url string) (Url, error) {
+	urlpath := buildUrlPath(url)
+	urldata, err := getUrlData(urlpath)
+	return urldata, err
 }
 
 func urlExists(url string) bool {
-	urlData, err := getUrlData(url)
+	urldata, err := getUrlData(url)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
-	if urlData.Url == "" {
+	if urldata.Url == "" {
 		return false
 	}
 	return true
@@ -217,9 +242,36 @@ func getPageTitle(url string) string {
 	return title
 }
 
+func fetchUrls() ([]*Url, error) {
+	var urls []*Url
+	response, err := http.Get(buildPrefixMatchPath("url"))
+	if err != nil {
+		return []*Url{}, err
+	}
+	scanner := bufio.NewScanner(response.Body)
+	defer response.Body.Close()
+	for scanner.Scan() {
+		url, err := getUrlData(buildPathFromKey(scanner.Text()))
+		if err != nil {
+			log.Println(err)
+		}
+		urls = append(urls, &url)
+	}
+	return urls, nil
+}
+
 // "actions" or whatever you want to call it
-func GetUrls() string {
-	return "hello"
+func GetUrls(rend render.Render) {
+	urls, err := fetchUrls()
+	if err != nil {
+		log.Println(err)
+	}
+	urldata := struct {
+		Urls []*Url
+	} {
+		Urls: urls,
+	}
+	rend.HTML(http.StatusOK, "index", urldata)
 }
 
 func GetUrl(params martini.Params) string {
