@@ -2,16 +2,16 @@
 
 {% block page_title %}
 <h2>List of shit</h2>
-<p><small><a href="/url/submit?auth_key={{auth_key}}">Add url</a></small></p>
+<p><small><a href="/url/submit?auth_key=">Add url</a></small></p>
 {% endblock %}
 
 {% block content %}
 {% for url in urls %}
 <div class="url-item">
     <h3>
-        <a href="{{ url.url }}" target="_blank">{{ url.url_title }}</a>
+        <a href="" target="_blank"></a>
     </h3>
-    <p><small>{{ url.created_at.strftime('%Y-%m-%d %H:%M') }} - {{ url.url }}</small></p>
+    <p><small>-</small></p>
 </div>
 {% else %}
 <p>There is nothing here but silence.</p>
