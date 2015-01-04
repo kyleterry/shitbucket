@@ -147,20 +147,17 @@ func hashUrl(url string) string {
 	return digest
 }
 
-func buildUrlPath(url string) string {
-	path := fmt.Sprintf("http://%s/%s/%s:url:%s",
-						defaultDBBind,
-						defaultDBName,
-						defaultDBKeyNamespace,
-						hashUrl(url))
-	fmt.Println(path)
-	return path
+func makeKeyForUrl(url string) string {
+	return fmt.Sprintf("%s:url:%s", defaultDBKeyNamespace, hashUrl(url))
 }
 
-func buildSubmitPath() string {
-	return fmt.Sprintf("http://%s/%s/url/submit",
+func buildUrlPath(url string) string {
+	path := fmt.Sprintf("http://%s/%s/%s",
 						defaultDBBind,
-						defaultDBName)
+						defaultDBName,
+						makeKeyForUrl(url))
+	fmt.Println(path)
+	return path
 }
 
 func buildPrefixMatchPath(prefix string) string {
