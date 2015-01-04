@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <title>Shitbucket: {% block title %}Minimal fucking bookmarking{% endblock %}</title>
+        <title>Shitbucket: Minimal fucking bookmarking</title>
 
         <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic' rel='stylesheet' type='text/css'>
         <link type="text/css" rel="stylesheet" href="" />
@@ -13,15 +13,12 @@
             </div>
         </header>
         <div id="content">
-        {% block page_title %}{% endblock %}
-        {{ yield }}
+            {{ yield }}
         </div>
         <footer>
             <div id="footer-content">
-            {% block footer %}
             <p><small>&copy; Kyle Terry</small></p>
             <p><small>Code: <a href="https://github.com/kyleterry/shitbucket">Github</a></small></p>
-            {% endblock %}
             </div>
         </footer>
     </body>

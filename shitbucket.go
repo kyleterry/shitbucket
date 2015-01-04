@@ -201,6 +201,12 @@ func getUrlDataFromUrl(url string) (Url, error) {
 	return urldata, err
 }
 
+func getUrlDataFromHash(hash string) (Url, error) {
+	path := buildPathFromKey(fmt.Sprintf("%s:url:%s", defaultDBKeyNamespace, hash))
+	urldata, err := getUrlData(path)
+	return urldata, err
+}
+
 func urlExists(url string) bool {
 	urldata, err := getUrlData(url)
 	if err != nil {
@@ -274,8 +280,14 @@ func GetUrls(rend render.Render) {
 	rend.HTML(http.StatusOK, "index", urldata)
 }
 
-func GetUrl(params martini.Params) string {
-	return fmt.Sprintf("sup %s", params["id"])
+func GetUrl(w http.ResponseWriter, rend render.Render, params martini.Params) {
+	urldata, err := getUrlDataFromHash(params["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+	rend.HTML(http.StatusOK, "url", urldata)
 }
 
 func AddUrl(w http.ResponseWriter, r *http.Request) {
@@ -295,7 +307,11 @@ func AddUrl(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	http.Redirect(w, r, fmt.Sprintf("/url/%s", hashUrl(url)), http.StatusCreated)
+	http.Redirect(w, r, fmt.Sprintf("/url/%s", hashUrl(url)), http.StatusFound)
+}
+
+func NewUrl(rend render.Render) {
+	rend.HTML(http.StatusOK, "add", nil)
 }
 
 func UpdateUrl(params martini.Params) string {
@@ -318,16 +334,18 @@ func wrappedrun(bind string) error {
 		Directory: "templates",
 		Extensions: []string{".html"},
 		Charset: "UTF-8",
+		Layout: "base",
 	}))
 
 	// Routes
 	m.Get("/", GetUrls)
 
 	m.Group("/url", func(r martini.Router) {
-		r.Get("/:id", GetUrl)
+		r.Get("/new", NewUrl)
 		r.Post("/submit", AddUrl)
 		r.Put("/update/:id", UpdateUrl)
 		r.Delete("/delete/:id", DeleteUrl)
+		r.Get("/:id", GetUrl)
 	})
 
 	return http.ListenAndServe(bind, m)

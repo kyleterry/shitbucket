@@ -1,17 +1,11 @@
-{% extends "base.html" %}
-
-{% block page_title %}
 <h2>Add URL</h2>
-{% endblock %}
 
-{% block content %}
-<form action="/url/submit?auth_key=" method="POST">
+<form action="/url/submit" method="POST">
     <p>
         <input id="url-submit" type="text" name="url" placeholder="https://example.com">
         <input type="hidden" name="source" value="web">
     </p>
     <p>
-        <button type="submit">You're shittin' me</button> <small><a href="/?auth_key=">cancel</a></small>
+        <button type="submit">You're shittin' me</button> <small><a href="/">cancel</a></small>
     </p>
 </form>
-{% endblock %}

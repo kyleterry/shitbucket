@@ -1,14 +1,12 @@
-{% extends "base.html" %}
-
 <h2>List of shit</h2>
-<p><small><a href="/url/submit?auth_key=">Add url</a></small></p>
+<p><small><a href="/url/new">Add url</a></small></p>
 
 {{range $url := .Urls }}
 <div class="url-item">
     <h3>
         <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
     </h3>
-    <p><small>-</small></p>
+    <p><small>{{ $url.CreatedAt }} - {{ $url.Url }}</small></p>
 </div>
 {{ end }}
 <p>There is nothing here but silence.</p>
