@@ -96,15 +96,15 @@ func (c *SetupCommand) Help() string {
 func (c *RunCommand) Run(args []string) int {
 	var bind string
 	cmdFlags := flag.NewFlagSet("Run", flag.ContinueOnError)
-	cmdFlags.StringVar(&bind, "bind", ":8080", "bind")
+	cmdFlags.StringVar(&bind, "bind", "localhost:8080", "bind")
 	cmdFlags.StringVar(&defaultDBBind, "db-bind", defaultDBBind, "db-bind")
 	cmdFlags.StringVar(&defaultDBName, "db-name", defaultDBName, "db-name")
 	cmdFlags.StringVar(&defaultDBKeyNamespace, "db-key-namespace", defaultDBKeyNamespace, "db-key-namespace")
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
-	log.Printf("Listening on %s", bind)
-	log.Printf("DB location %s", "http://" + defaultDBBind + "/" + defaultDBName)
+	log.Printf("Listening on http://%s", bind)
+	log.Printf("DB location http://%s/%s", defaultDBBind, defaultDBName)
 
 	err := wrappedrun(bind)
 	if err != nil{
