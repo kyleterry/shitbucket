@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"crypto/md5"
 	"flag"
 	"fmt"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -10,8 +15,8 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
-	_"github.com/mxk/go-sqlite/sqlite3"
 	"github.com/mitchellh/cli"
+	"github.com/PuerkitoBio/goquery"
 )
 
 // Structs and Vars
@@ -21,8 +26,9 @@ const (
 
 var (
 	defaultWorkingDir = os.Getenv("HOME") + "/.config/shitbucket/"
-	defaultDBFile = "shitbucket.db"
-	defaultDBPath = defaultWorkingDir + defaultDBFile
+	defaultDBBind = "localhost:38080"
+	defaultDBName = "shitbucket"
+	defaultDBKeyNamespace = "sb"
 )
 
 // Structs
@@ -44,16 +50,19 @@ type RunCommand struct {
 }
 
 type Url struct {
-	Id int
-	Url string
-	UrlTitle string
-	Source string
-	CreatedAt time.Time
+	Url string `json:"url"`
+	UrlTitle string `json:"url_title"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Tag struct {
-	Id int
-	Name string
+	Name string `json:"name"`
+	Entries []string `json:"entries"`
+}
+
+type Config struct {
+	DatabaseBind string `json:"database_addr"`
+	DatabaseName string `json:"database_name"`
 }
 
 // Methods for commands
@@ -88,12 +97,14 @@ func (c *RunCommand) Run(args []string) int {
 	var bind string
 	cmdFlags := flag.NewFlagSet("Run", flag.ContinueOnError)
 	cmdFlags.StringVar(&bind, "bind", ":8080", "bind")
-	cmdFlags.StringVar(&defaultDBFile, "db-location", defaultDBPath, "bind")
+	cmdFlags.StringVar(&defaultDBBind, "db-bind", defaultDBBind, "db-bind")
+	cmdFlags.StringVar(&defaultDBName, "db-name", defaultDBName, "db-name")
+	cmdFlags.StringVar(&defaultDBKeyNamespace, "db-key-namespace", defaultDBKeyNamespace, "db-key-namespace")
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
 	log.Printf("Listening on %s", bind)
-	log.Printf("DB location %s", defaultDBPath)
+	log.Printf("DB location %s", "http://" + defaultDBBind + "/" + defaultDBName)
 
 	err := wrappedrun(bind)
 	if err != nil{
@@ -112,13 +123,98 @@ Usage: shitbucket run [options]
 	Start a shitbucket web server.
 
 Options:
-	-bind			Set how the server should bind. E.g. -bind "localhost:9090"
-					Default is ":8080".
+	-bind				Set how the server should bind. E.g. -bind "localhost:9090"
+						Default is ":8080".
 
-	-db-location	Location to the sqlite database
-					Default is ${HOME}/.config/shitbucket/shitbucket.db
+	-db-bind			This is the address (tcp) where the database listens.
+						"localhost:38080" is used by default.
+
+	-db-name			Sets the name to use for the database namespace.
+						"shitbucket" is used by default.
+
+	-db-key-namespace	Sets the namespace to use in the database when storing shit.
+						"sb" is the default.
 `
 	return help
+}
+
+// Other stuff
+
+func hashUrl(url string) string {
+	digest := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:5]
+	fmt.Println(digest)
+	return digest
+}
+
+func buildUrlPath(url string) string {
+	path := fmt.Sprintf("http://%s/%s/%s:url:%s",
+						defaultDBBind,
+						defaultDBName,
+						defaultDBKeyNamespace,
+						hashUrl(url))
+	fmt.Println(path)
+	return path
+}
+
+func buildSubmitPath() string {
+	return fmt.Sprintf("http://%s/%s/url/submit",
+						defaultDBBind,
+						defaultDBName)
+}
+
+func getUrlData(url string) (Url, error) {
+	urlData := Url{}
+	response, err := http.Get(buildUrlPath(url))
+	if err != nil || response.StatusCode == 404 {
+		return urlData, err
+	}
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return urlData, err
+	}
+	json.Unmarshal([]byte(contents), &urlData)
+	return urlData, nil
+}
+
+func urlExists(url string) bool {
+	urlData, err := getUrlData(url)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	if urlData.Url == "" {
+		return false
+	}
+	return true
+}
+
+
+func saveUrl(urlData Url) error {
+	if urlData.Url == "" {
+		return errors.New("Can't save a blank record.")
+	}
+	urlBytes, err := json.Marshal(urlData)
+	if err != nil {
+		return err
+	}
+
+	r, _ := http.Post(buildUrlPath(urlData.Url), "text/json", bytes.NewBuffer(urlBytes))
+
+	if r.StatusCode != 201 {
+		return errors.New("Cannot save url, got status code: " + r.Status)
+	}
+
+	return nil
+}
+
+func getPageTitle(url string) string {
+	doc, err := goquery.NewDocument(url)
+	if err != nil {
+		return ""
+	}
+
+	title := doc.Find("title").Text()
+	return title
 }
 
 // "actions" or whatever you want to call it
@@ -130,8 +226,24 @@ func GetUrl(params martini.Params) string {
 	return fmt.Sprintf("sup %s", params["id"])
 }
 
-func NewUrl() string {
-	return "sup submit"
+func AddUrl(w http.ResponseWriter, r *http.Request) {
+	url := r.FormValue("url")
+	if urlExists(url) {
+		http.Redirect(w, r, "/", http.StatusNotModified)
+		return
+	}
+	title := getPageTitle(url)
+	urlRecord := Url{
+		Url: url,
+		UrlTitle: title,
+		CreatedAt: time.Now(),
+	}
+	log.Println(title)
+	err := saveUrl(urlRecord)
+	if err != nil {
+		log.Println(err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("/url/%s", hashUrl(url)), http.StatusCreated)
 }
 
 func UpdateUrl(params martini.Params) string {
@@ -145,7 +257,6 @@ func DeleteUrl(params martini.Params) string {
 func Auth(res http.ResponseWriter, req *http.Request) {
 
 }
-
 
 func wrappedrun(bind string) error {
 	m := martini.Classic()
@@ -162,7 +273,7 @@ func wrappedrun(bind string) error {
 
 	m.Group("/url", func(r martini.Router) {
 		r.Get("/:id", GetUrl)
-		r.Post("/submit", NewUrl)
+		r.Post("/submit", AddUrl)
 		r.Put("/update/:id", UpdateUrl)
 		r.Delete("/delete/:id", DeleteUrl)
 	})
