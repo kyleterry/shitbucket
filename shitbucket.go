@@ -158,7 +158,6 @@ func (u Url) FormattedCreatedAt() string {
 
 func hashUrl(url string) string {
 	digest := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:5]
-	fmt.Println(digest)
 	return digest
 }
 
@@ -171,7 +170,6 @@ func buildUrlPath(url string) string {
 						defaultDBBind,
 						defaultDBName,
 						makeKeyForUrl(url))
-	fmt.Println(path)
 	return path
 }
 
@@ -319,7 +317,6 @@ func AddUrl(w http.ResponseWriter, r *http.Request) {
 		Hash: hashUrl(url),
 		CreatedAt: time.Now(),
 	}
-	log.Println(title)
 	err := saveUrl(urlRecord)
 	if err != nil {
 		log.Println(err)
