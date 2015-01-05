@@ -1,0 +1,13 @@
+{{ $url := .Url }}
+<h2>Managing Tags for {{ $url.Url }}</h2>
+
+<form action="{{ $url.ManageTagsSaveUri }}" method="POST">
+    <p>
+    <input id="url-submit" type="text" name="tags" value="{{.Tags}}" placeholder="computerscience, lisp, compilers">
+        <input type="hidden" name="source" value="web">
+    </p>
+    <p>
+        <button type="submit">TAG IT</button> <small><a href="/">cancel</a></small>
+    </p>
+</form>
+
