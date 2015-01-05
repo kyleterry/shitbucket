@@ -1,8 +1,10 @@
+<h2>A Single Item of Shit</h2>
+
 {{ $url := . }}
 <div class="url-item">
     <h3>
         <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
     </h3>
-    <p><small>{{ $url.CreatedAt }} - {{ $url.Url }}</small></p>
-    <p><small><a href="{{$url.DeleteUri}}">Delete</a> <a href="{{$url.Uri}}">Permalink</a></small></p>
+    <p><small>{{ $url.FormattedCreatedAt }} - {{ $url.Url }}</small></p>
+    <p><small><a href="{{ $url.DeleteUri }}">Delete</a></small></p>
 </div>

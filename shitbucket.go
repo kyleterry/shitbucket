@@ -150,6 +150,10 @@ func (u Url) DeleteUri() string {
 	return fmt.Sprintf("%s/delete", u.Uri())
 }
 
+func (u Url) FormattedCreatedAt() string {
+	return u.CreatedAt.Format(time.RFC1123)
+}
+
 // Other stuff
 
 func hashUrl(url string) string {
