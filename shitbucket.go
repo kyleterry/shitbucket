@@ -140,6 +140,16 @@ Options:
 	return help
 }
 
+// Methods for Url
+
+func (u *Url) Uri() string {
+	return fmt.Sprintf("/url/%s", u.Hash)
+}
+
+func (u *Url) DeleteUri() string {
+	return fmt.Sprintf("%s/delete", u.Uri())
+}
+
 // Other stuff
 
 func hashUrl(url string) string {
