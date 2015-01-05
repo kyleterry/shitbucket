@@ -4,20 +4,20 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/md5"
-	"flag"
-	"fmt"
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/mitchellh/cli"
-	"github.com/PuerkitoBio/goquery"
 )
 
 // Structs and Vars
@@ -26,16 +26,16 @@ const (
 )
 
 var (
-	defaultWorkingDir = os.Getenv("HOME") + "/.config/shitbucket/"
-	defaultDBBind = "localhost:38080"
-	defaultDBName = "shitbucket"
+	defaultWorkingDir     = os.Getenv("HOME") + "/.config/shitbucket/"
+	defaultDBBind         = "localhost:38080"
+	defaultDBName         = "shitbucket"
 	defaultDBKeyNamespace = "sb"
 )
 
 // Structs
 type Meta struct {
 	Color bool
-	Ui cli.Ui
+	Ui    cli.Ui
 }
 
 type AdminCommand struct {
@@ -51,15 +51,15 @@ type RunCommand struct {
 }
 
 type Url struct {
-	Url string `json:"url"`
-	UrlTitle string `json:"url_title"`
-	Hash string `json:"hash"`
+	Url       string    `json:"url"`
+	UrlTitle  string    `json:"url_title"`
+	Hash      string    `json:"hash"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Tag struct {
-	Name string `json:"name"`
-	Entries []string `json:"entries"`
+	Name string   `json:"name"`
+	Urls []string `json:"urls"`
 }
 
 type Config struct {
@@ -109,7 +109,7 @@ func (c *RunCommand) Run(args []string) int {
 	log.Printf("DB location http://%s/%s", defaultDBBind, defaultDBName)
 
 	err := wrappedrun(bind)
-	if err != nil{
+	if err != nil {
 		return 1
 	}
 	return 0
@@ -167,26 +167,26 @@ func makeKeyForUrl(url string) string {
 
 func buildUrlPath(url string) string {
 	path := fmt.Sprintf("http://%s/%s/%s",
-						defaultDBBind,
-						defaultDBName,
-						makeKeyForUrl(url))
+		defaultDBBind,
+		defaultDBName,
+		makeKeyForUrl(url))
 	return path
 }
 
 func buildPrefixMatchPath(prefix string) string {
 	path := fmt.Sprintf("http://%s/%s/%s:%s/_match",
-						defaultDBBind,
-						defaultDBName,
-						defaultDBKeyNamespace,
-						prefix)
+		defaultDBBind,
+		defaultDBName,
+		defaultDBKeyNamespace,
+		prefix)
 	return path
 }
 
 func buildPathFromKey(key string) string {
 	path := fmt.Sprintf("http://%s/%s/%s",
-						defaultDBBind,
-						defaultDBName,
-						key)
+		defaultDBBind,
+		defaultDBName,
+		key)
 	return path
 }
 
@@ -228,7 +228,6 @@ func urlExists(url string) bool {
 	}
 	return true
 }
-
 
 func saveUrl(urlData Url) error {
 	if urlData.Url == "" {
@@ -285,10 +284,10 @@ func GetUrls(rend render.Render) {
 		log.Println(err)
 	}
 	urldata := struct {
-		Urls []Url
+		Urls  []Url
 		Count int
-	} {
-		Urls: urls,
+	}{
+		Urls:  urls,
 		Count: len(urls),
 	}
 	rend.HTML(http.StatusOK, "index", urldata)
@@ -312,9 +311,9 @@ func AddUrl(w http.ResponseWriter, r *http.Request) {
 	}
 	title := getPageTitle(url)
 	urlRecord := Url{
-		Url: url,
-		UrlTitle: title,
-		Hash: hashUrl(url),
+		Url:       url,
+		UrlTitle:  title,
+		Hash:      hashUrl(url),
 		CreatedAt: time.Now(),
 	}
 	err := saveUrl(urlRecord)
@@ -342,7 +341,7 @@ func DeleteUrl(w http.ResponseWriter, r *http.Request, params martini.Params) {
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", buildUrlPath(urldata.Url), nil)
-	
+
 	resp, err := client.Do(req)
 
 	if err != nil || resp.StatusCode != 200 {
@@ -363,10 +362,10 @@ func wrappedrun(bind string) error {
 	m.Use(Auth)
 	m.Use(martini.Static("assets"))
 	m.Use(render.Renderer(render.Options{
-		Directory: "templates",
+		Directory:  "templates",
 		Extensions: []string{".html"},
-		Charset: "UTF-8",
-		Layout: "base",
+		Charset:    "UTF-8",
+		Layout:     "base",
 	}))
 
 	// Routes
@@ -387,7 +386,7 @@ func main() {
 
 	meta := Meta{
 		Color: true,
-		Ui: ui,
+		Ui:    ui,
 	}
 
 	c := cli.NewCLI("shitbucket", version)
