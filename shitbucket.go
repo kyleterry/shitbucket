@@ -53,6 +53,7 @@ type RunCommand struct {
 type Url struct {
 	Url string `json:"url"`
 	UrlTitle string `json:"url_title"`
+	Hash string `json:"hash"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -299,6 +300,7 @@ func AddUrl(w http.ResponseWriter, r *http.Request) {
 	urlRecord := Url{
 		Url: url,
 		UrlTitle: title,
+		Hash: hashUrl(url),
 		CreatedAt: time.Now(),
 	}
 	log.Println(title)
@@ -313,8 +315,30 @@ func NewUrl(rend render.Render) {
 	rend.HTML(http.StatusOK, "add", nil)
 }
 
-func DeleteUrl(params martini.Params) string {
-	return fmt.Sprintf("delete %s", params["id"])
+func DeleteUrl(w http.ResponseWriter, r *http.Request, params martini.Params) {
+	urldata, err := getUrlDataFromHash(params["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	if urldata.Url == "" {
+		return
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", buildUrlPath(urldata.Url), nil)
+	
+	resp, err := client.Do(req)
+
+	if err != nil || resp.StatusCode != 200 {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func Auth(res http.ResponseWriter, req *http.Request) {
@@ -338,7 +362,7 @@ func wrappedrun(bind string) error {
 	m.Group("/url", func(r martini.Router) {
 		r.Get("/new", NewUrl)
 		r.Post("/submit", AddUrl)
-		r.Delete("/delete/:id", DeleteUrl)
+		r.Get("/:id/delete", DeleteUrl)
 		r.Get("/:id", GetUrl)
 	})
 
