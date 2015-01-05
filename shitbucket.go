@@ -259,7 +259,9 @@ func fetchUrls() ([]*Url, error) {
 		if err != nil {
 			log.Println(err)
 		}
-		urls = append(urls, &url)
+		if url.Url != "" {
+			urls = append(urls, &url)
+		}
 	}
 	return urls, nil
 }
