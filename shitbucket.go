@@ -142,11 +142,11 @@ Options:
 
 // Methods for Url
 
-func (u *Url) Uri() string {
+func (u Url) Uri() string {
 	return fmt.Sprintf("/url/%s", u.Hash)
 }
 
-func (u *Url) DeleteUri() string {
+func (u Url) DeleteUri() string {
 	return fmt.Sprintf("%s/delete", u.Uri())
 }
 
@@ -256,11 +256,11 @@ func getPageTitle(url string) string {
 	return title
 }
 
-func fetchUrls() ([]*Url, error) {
-	var urls []*Url
+func fetchUrls() ([]Url, error) {
+	var urls []Url
 	response, err := http.Get(buildPrefixMatchPath("url"))
 	if err != nil {
-		return []*Url{}, err
+		return []Url{}, err
 	}
 	scanner := bufio.NewScanner(response.Body)
 	defer response.Body.Close()
@@ -270,7 +270,7 @@ func fetchUrls() ([]*Url, error) {
 			log.Println(err)
 		}
 		if url.Url != "" {
-			urls = append(urls, &url)
+			urls = append(urls, url)
 		}
 	}
 	return urls, nil
@@ -283,7 +283,7 @@ func GetUrls(rend render.Render) {
 		log.Println(err)
 	}
 	urldata := struct {
-		Urls []*Url
+		Urls []Url
 		Count int
 	} {
 		Urls: urls,
