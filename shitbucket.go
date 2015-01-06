@@ -333,7 +333,7 @@ func fetchTags() ([]Tag, error) {
 	scanner := bufio.NewScanner(response.Body)
 	defer response.Body.Close()
 	for scanner.Scan() {
-		tag, err := getTag(buildTagPath(scanner.Text()))
+		tag, err := getTagFromKey(scanner.Text())
 		if err != nil {
 			log.Println(err)
 		}
@@ -344,8 +344,8 @@ func fetchTags() ([]Tag, error) {
 	return tags, nil
 }
 
-func getTag(tagname string) (Tag, error) {
-	response, err := http.Get(buildTagPath(tagname))
+func getTag(path string) (Tag, error) {
+	response, err := http.Get(path)
 	if err != nil || response.StatusCode == 404 {
 		return Tag{}, err
 	}
@@ -362,8 +362,18 @@ func getTag(tagname string) (Tag, error) {
 	return tag, nil
 }
 
+func getTagFromKey(key string) (Tag, error) {
+	path := buildPathFromKey(key)
+	return getTag(path)
+}
+
+func getTagFromName(tagname string) (Tag, error) {
+	path := buildTagPath(tagname)
+	return getTag(path)
+}
+
 func getOrCreateTag(tagname string) Tag {
-	tag, err := getTag(tagname)
+	tag, err := getTagFromName(tagname)
 	if tag.Name == "" || err != nil {
 		tag.Name = tagname
 		saveTag(tag)
@@ -507,20 +517,20 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	}
 
 	tags := r.FormValue("tags")
-	if tags == "" {
-		context := struct{
-			Url Url
-			Flash string
-			Tags string
-		} {
-			Url: urldata,
-			Flash: "You need to enter some tags, man",
-			Tags: strings.Join(urldata.Tags, ", "),
-		}
+	//if tags == "" {
+	//	context := struct{
+	//		Url Url
+	//		Flash string
+	//		Tags string
+	//	} {
+	//		Url: urldata,
+	//		Flash: "You need to enter some tags, man",
+	//		Tags: strings.Join(urldata.Tags, ", "),
+	//	}
 
-		rend.HTML(http.StatusOK, "manage-tags", context)
-		return
-	}
+	//	rend.HTML(http.StatusOK, "manage-tags", context)
+	//	return
+	//}
 
 	splittags := strings.FieldsFunc(tags, func(c rune) bool {
 		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
@@ -529,19 +539,22 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	// Reset Tags
 	urldata.Tags = []string{}
 	ts, err := fetchTags()
+	fmt.Println("before resetting tags")
 	fmt.Println(ts)
 	fmt.Println(err)
 	for _, tag := range ts {
 		tag.RemoveUrl(urldata)
 	}
+	fmt.Println("after resetting tags")
 
 	for _, tagname := range splittags {
 		tag := getOrCreateTag(tagname)
 		tag.Urls = append(tag.Urls, urldata.Hash)
 		urldata.Tags = append(urldata.Tags, tag.Name)
 		saveTag(tag)
-		saveUrl(urldata)
 	}
+
+	saveUrl(urldata)
 
 	http.Redirect(w, r, urldata.Uri(), http.StatusFound)
 }
