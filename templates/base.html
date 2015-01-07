@@ -13,7 +13,13 @@
             </div>
         </header>
         <div id="content">
-            {{ yield }}
+            <div id="left">
+                <h3>Tags</h3>
+                {{ template "tags-sidebar" }}
+            </div>
+            <div id="right">
+                {{ yield }}
+            </div>
         </div>
         <footer>
             <div id="footer-content">

@@ -70,6 +70,10 @@ type Config struct {
 	DatabaseName string `json:"database_name"`
 }
 
+type GlobalContext struct {
+	Tags []Tag
+}
+
 // Methods for commands
 func (c *AdminCommand) Run(args []string) int {
 	return 1
@@ -177,13 +181,9 @@ func (t Tag) HasUrl(url Url) bool {
 }
 
 func (t *Tag) RemoveUrl(url Url) {
-	fmt.Println(url)
 	for i, h := range t.Urls {
-		fmt.Println(h)
-		fmt.Println(url.Hash)
 		if h == url.Hash {
 			t.Urls = append(t.Urls[:i], t.Urls[i+1:]...)
-			fmt.Println(t.Urls)
 			saveTag(*t)
 		}
 	}
@@ -400,19 +400,21 @@ func saveTag(tag Tag) error {
 }
 
 // "actions" or whatever you want to call it
-func GetUrls(rend render.Render) {
+func UrlsIndex(rend render.Render) {
 	urls, err := fetchUrls()
 	if err != nil {
 		log.Println(err)
 	}
-	urldata := struct {
+	context := struct {
 		Urls  []Url
 		Count int
+		Title string
 	}{
 		Urls:  urls,
 		Count: len(urls),
+		Title: "List of Shit",
 	}
-	rend.HTML(http.StatusOK, "index", urldata)
+	rend.HTML(http.StatusOK, "index", context)
 }
 
 func GetUrl(w http.ResponseWriter, rend render.Render, params martini.Params) {
@@ -539,13 +541,9 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	// Reset Tags
 	urldata.Tags = []string{}
 	ts, err := fetchTags()
-	fmt.Println("before resetting tags")
-	fmt.Println(ts)
-	fmt.Println(err)
 	for _, tag := range ts {
 		tag.RemoveUrl(urldata)
 	}
-	fmt.Println("after resetting tags")
 
 	for _, tagname := range splittags {
 		tag := getOrCreateTag(tagname)
@@ -557,6 +555,44 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	saveUrl(urldata)
 
 	http.Redirect(w, r, urldata.Uri(), http.StatusFound)
+}
+
+func TagsIndex(w http.ResponseWriter, r *http.Request, params martini.Params, rend render.Render) {
+	tag, err := getTagFromName(params["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	if tag.Name == "" {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("OH SHIT A 404"))
+		return
+	}
+
+	var urls []Url
+
+	for _, h := range tag.Urls {
+		url, err := getUrlDataFromHash(h)
+		if url.Url != "" && err == nil {
+			urls = append(urls, url)
+		}
+	}
+
+	context := struct {
+		Urls []Url
+		Count int
+		Title string
+		Tag Tag
+	} {
+		Urls: urls,
+		Count: len(tag.Urls),
+		Title: fmt.Sprintf("Urls Tagged Under %s", tag.Name),
+		Tag: tag,
+	}
+
+	rend.HTML(http.StatusOK, "index", context)
 }
 
 // Main shit
@@ -573,7 +609,7 @@ func wrappedrun(bind string) error {
 	}))
 
 	// Routes
-	m.Get("/", GetUrls)
+	m.Get("/", UrlsIndex)
 
 	m.Group("/url", func(r martini.Router) {
 		r.Get("/new", NewUrl)
@@ -582,6 +618,10 @@ func wrappedrun(bind string) error {
 		r.Get("/:id/manage-tags", ManageTags)
 		r.Post("/:id/manage-tags/submit", SaveTags)
 		r.Get("/:id", GetUrl)
+	})
+
+	m.Group("/tag", func(r martini.Router) {
+		r.Get("/:id", TagsIndex)
 	})
 
 	return http.ListenAndServe(bind, m)

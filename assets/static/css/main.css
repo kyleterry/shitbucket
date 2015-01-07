@@ -40,6 +40,19 @@ footer {
 #content {
     width: 960px;
     margin: 0 auto;
+    clear: both;
+    display: table;
+}
+
+#left {
+    width: 150px;
+    float: left;
+    margin-top: 150px;
+}
+
+#right {
+    width: 810px;
+    float: left;
 }
 
 #footer-content {
