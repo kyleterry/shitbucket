@@ -22,6 +22,8 @@ import (
 	"github.com/mitchellh/cli"
 )
 
+// There is no hope...
+
 // Structs and Vars
 const (
 	version = "0.1.0"
@@ -101,6 +103,8 @@ func (c *SetupCommand) Help() string {
 
 	return "Not implemented yet"
 }
+
+// for this world gone cold...
 
 func (c *RunCommand) Run(args []string) int {
 	var bind string
@@ -626,6 +630,8 @@ func wrappedrun(bind string) error {
 
 	return http.ListenAndServe(bind, m)
 }
+
+// and full of shit.
 
 func main() {
 	ui := &cli.BasicUi{Writer: os.Stdout}
