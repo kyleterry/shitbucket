@@ -165,6 +165,13 @@ func (u Url) ManageTagsSaveUri() string {
 	return fmt.Sprintf("%s/submit", u.ManageTagsUri())
 }
 
+func (u Url) HasTags() bool {
+	if len(u.Tags) > 0 {
+		return true
+	}
+	return false
+}
+
 func (u Url) FormattedCreatedAt() string {
 	return u.CreatedAt.Format(time.RFC1123)
 }

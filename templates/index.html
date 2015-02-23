@@ -1,17 +1,46 @@
-<h2>{{ .Title }}</h2>
-<p><small><a href="/url/new">Add url</a></small></p>
+<div class="row">
+  <div class="page-header">
+    <h2>{{ .Title }}</h2>
+  </div>
 
-{{if .Count}}
-<p>Found {{ .Count }} URLs</p>
-{{range $url := .Urls }}
-<div class="url-item">
-    <h3>
-        <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
-    </h3>
-    <p><small>{{ $url.FormattedCreatedAt }} - {{ $url.Url }}</small></p>
-    <p><small><a href="{{$url.DeleteUri}}">Delete</a> <a href="{{$url.Uri}}">Permalink</a></small></p>
+    {{if .Count}}
+    <div class="row">
+      <div class="col-lg-12">
+        <p>Found {{ .Count }} URLs</p>
+      </div>
+    </div>
+    {{range $url := .Urls }}
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="panel panel-default url-item">
+          <div class="panel-body">
+            <h3>
+                <a href="{{ $url.Url }}" target="_blank">{{ $url.UrlTitle }}</a>
+            </h3>
+            <i class="fa fa-crosshairs"></i> {{ $url.Url }}<br>
+            <i class="fa fa-calendar"></i> {{ $url.FormattedCreatedAt }}<br>
+            {{ if $url.HasTags }}
+            <i class="fa fa-tag"></i> {{range $tag := $url.Tags }}<a href="#">{{ $tag }}</a> {{ end }}
+            {{ end }}
+          </div>
+          <div class="panel-footer">
+            <div class="clearfix">
+              <ul class="nav nav-pills">
+                <li role="presentation"><a href="{{ $url.Uri }}"><i class="fa fa-link"></i></a></li>
+                <li role="presentation"><a href="{{ $url.ManageTagsUri }}"><i class="fa fa-cog"></i></a></li>
+                <li role="presentation"><a href="{{ $url.DeleteUri }}" class="text-danger"><i class="fa fa-trash"></i></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{ end }}
+    {{else}}
+    <div class="row">
+      <div class="col-lg-12">
+        <p>There is nothing here but silence.</p>
+      </div>
+    </div>
+    {{ end }}
 </div>
-{{ end }}
-{{else}}
-<p>There is nothing here but silence.</p>
-{{ end }}
