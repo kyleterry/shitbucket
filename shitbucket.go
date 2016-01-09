@@ -499,6 +499,14 @@ func DeleteUrl(w http.ResponseWriter, r *http.Request, params martini.Params) {
 		return
 	}
 
+	for _, tag := range urldata.Tags {
+		tagObject, err := getTagFromName(tag)
+		if err != nil {
+			panic(err)
+		}
+		tagObject.RemoveUrl(urldata)
+	}
+
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", buildUrlPath(urldata.Url), nil)
 
