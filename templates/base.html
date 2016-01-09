@@ -2,7 +2,7 @@
 <html>
     <head>
       <title>Shitbucket: Minimal fucking bookmarking</title>
-
+      <meta name="viewport" content="width=device-width, initial-scale=1">
       <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic' rel='stylesheet' type='text/css'>
       <link type="text/css" rel="stylesheet" href="/static/css/bootstrap.min.css">
       <link type="text/css" rel="stylesheet" href="/static/css/app.css">
@@ -10,50 +10,50 @@
       <!--<link type="text/css" rel="stylesheet" href="/static/css/main.css" />-->
     </head>
     <body>
-      <div id="wrapper">
-        <!-- Fixed navbar -->
-        <div class="navbar navbar-default">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="/">Shitbucket</a>
-            </div>
-            <div class="collapse navbar-collapse">
-              <ul class="nav navbar-nav">
-                <li><a href="#"><i class="fa fa-dashboard"></i></a></li>
-                <li class="active"><a href="#list"><i class="fa fa-navicon"></i></a></li>
-              </ul>
-              <ul class="nav navbar-nav pull-right">
-                <li><a href="/url/new"><span class="navbar-highlight"><i class="fa fa-plus"></i> Add URL</span></a></li>
-              </ul>
-            </div><!--/.nav-collapse -->
+      <!-- Fixed navbar -->
+      <div class="navbar navbar-default">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Shitbucket</a>
           </div>
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+			  {{ $active := index .Data "ActiveTab" }}
+              <li><a href="#"><i class="fa fa-dashboard"></i></a></li>
+              <li {{if eq $active "urls"}}class="active"{{end}}><a href="/"><i class="fa fa-navicon"></i></a></li>
+              <li {{if eq $active "tags"}}class="active"{{end}}><a href="/tag/"><i class="fa fa-tags"></i></a></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right">
+              <li><a href="/url/new"><span class="navbar-highlight"><i class="fa fa-plus"></i> Add URL</span></a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
         </div>
+      </div>
 
-        <div id="content">
-          <div class="container">
-            {{ yield }}
-          </div>
+      <div id="content">
+        <div class="container">
+          {{ yield }}
         </div>
+      </div>
 
-        <div id="footer">
-          <div class="container">
-            <p class="text-muted credit">
-              © Kyle Terry
-            </p>
-            <p class="text-muted">
-              <a href="https://github.com/kyleterry/shitbucket"><i class="fa fa-github"></i> Github</a>
-              ·
-              <a href="https://github.com/kyleterry/shitbucket/issues">Issues</a>
-            </p>
-          </div>
+
+      <footer class="footer">
+        <div class="container">
+          <p class="text-muted credit">
+            © Kyle Terry
+          </p>
+          <p class="text-muted">
+            <a href="https://github.com/kyleterry/shitbucket"><i class="fa fa-github"></i> Github</a>
+            ·
+            <a href="https://github.com/kyleterry/shitbucket/issues">Issues</a>
+          </p>
         </div>
-
-      </div> <!-- end container -->
+      </footer>
 
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
       <script src="/static/js/bootstrap.min.js"></script>
