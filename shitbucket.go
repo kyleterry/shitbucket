@@ -196,6 +196,14 @@ func (t *Tag) RemoveUrl(url Url) {
 	}
 }
 
+func (t *Tag) Uri() string {
+	return fmt.Sprintf("/tag/%s", t.Name)
+}
+
+func (t *Tag) UrlCount() int {
+	return len(t.Urls)
+}
+
 // Other stuff
 
 func hashUrl(url string) string {
