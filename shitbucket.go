@@ -604,7 +604,31 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	http.Redirect(w, r, urldata.Uri(), http.StatusFound)
 }
 
-func TagsIndex(w http.ResponseWriter, r *http.Request, params martini.Params, rend render.Render) {
+func TagIndex(w http.ResponseWriter, r *http.Request, params martini.Params, rend render.Render) {
+	tags, err := getTags()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 Internal Server Error"))
+		return
+	}
+
+	context := struct {
+		Data      map[string]string
+		ActiveTab string
+		Tags      []Tag
+		Count     int
+	}{
+		Data:      make(map[string]string),
+		ActiveTab: "tags",
+		Tags:      tags,
+		Count:     len(tags),
+	}
+	context.Data["ActiveTab"] = "tags"
+
+	rend.HTML(http.StatusOK, "tag-index", context)
+}
+
+func GetTag(w http.ResponseWriter, r *http.Request, params martini.Params, rend render.Render) {
 	tag, err := getTagFromName(params["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -670,8 +694,9 @@ func wrappedrun(bind string) error {
 		r.Get("/:id", GetUrl)
 	})
 
+	m.Get("/tag", TagIndex)
 	m.Group("/tag", func(r martini.Router) {
-		r.Get("/:id", TagsIndex)
+		r.Get("/:id", GetTag)
 	})
 
 	return http.ListenAndServe(bind, m)
