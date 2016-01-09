@@ -425,14 +425,17 @@ func UrlsIndex(rend render.Render) {
 		log.Println(err)
 	}
 	context := struct {
+		Data  map[string]string
 		Urls  []Url
 		Count int
 		Title string
 	}{
+		Data:  make(map[string]string),
 		Urls:  urls,
 		Count: len(urls),
 		Title: "List of Shit",
 	}
+	context.Data["ActiveTab"] = "urls"
 	rend.HTML(http.StatusOK, "index", context)
 }
 
@@ -443,7 +446,15 @@ func GetUrl(w http.ResponseWriter, rend render.Render, params martini.Params) {
 		w.Write([]byte("500 Internal Server Error"))
 		return
 	}
-	rend.HTML(http.StatusOK, "url", urldata)
+	context := struct {
+		Data map[string]string
+		Url  Url
+	}{
+		Data: make(map[string]string),
+		Url:  urldata,
+	}
+	context.Data["ActiveTab"] = "urls"
+	rend.HTML(http.StatusOK, "url", context)
 }
 
 func AddUrl(w http.ResponseWriter, r *http.Request) {
@@ -467,7 +478,13 @@ func AddUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewUrl(rend render.Render) {
-	rend.HTML(http.StatusOK, "add", nil)
+	context := struct {
+		Data map[string]string
+	}{
+		Data: make(map[string]string),
+	}
+	context.Data["ActiveTab"] = "urls"
+	rend.HTML(http.StatusOK, "add", context)
 }
 
 func DeleteUrl(w http.ResponseWriter, r *http.Request, params martini.Params) {
@@ -512,14 +529,17 @@ func ManageTags(w http.ResponseWriter, r *http.Request, params martini.Params, r
 		return
 	}
 
-	context := struct{
-		Url Url
+	context := struct {
+		Data  map[string]string
+		Url   Url
 		Flash string
-		Tags string
-	} {
-		Url: urldata,
-		Tags: strings.Join(urldata.Tags, ", "),
+		Tags  string
+	}{
+		Data: make(map[string]string),
+		Url:  urldata,
+		Tags: strings.Join(urldata.Tags, " "),
 	}
+	context.Data["ActiveTab"] = "urls"
 
 	rend.HTML(http.StatusOK, "manage-tags", context)
 }
@@ -600,16 +620,19 @@ func TagsIndex(w http.ResponseWriter, r *http.Request, params martini.Params, re
 	}
 
 	context := struct {
-		Urls []Url
+		Data  map[string]string
+		Urls  []Url
 		Count int
 		Title string
-		Tag Tag
-	} {
-		Urls: urls,
+		Tag   Tag
+	}{
+		Data:  make(map[string]string),
+		Urls:  urls,
 		Count: len(tag.Urls),
 		Title: fmt.Sprintf("Urls Tagged Under %s", tag.Name),
-		Tag: tag,
+		Tag:   tag,
 	}
+	context.Data["ActiveTab"] = "tags"
 
 	rend.HTML(http.StatusOK, "index", context)
 }
