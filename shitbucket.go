@@ -343,7 +343,7 @@ func fetchUrls() ([]Url, error) {
 	return urls, nil
 }
 
-func fetchTags() ([]Tag, error) {
+func getTags() ([]Tag, error) {
 	var tags []Tag
 	response, err := http.Get(buildPrefixMatchPath("tag"))
 	if err != nil {
@@ -554,12 +554,12 @@ func SaveTags(w http.ResponseWriter, r *http.Request, params martini.Params, ren
 	//}
 
 	splittags := strings.FieldsFunc(tags, func(c rune) bool {
-		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c) && !unicode.IsPunct(c)
 	})
 
 	// Reset Tags
 	urldata.Tags = []string{}
-	ts, err := fetchTags()
+	ts, err := getTags()
 	for _, tag := range ts {
 		tag.RemoveUrl(urldata)
 	}
