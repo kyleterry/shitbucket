@@ -300,7 +300,11 @@ func saveUrl(urlData Url) error {
 		return err
 	}
 
-	r, _ := http.Post(buildUrlPath(urlData.Url), "text/json", bytes.NewBuffer(urlBytes))
+	r, err := http.Post(buildUrlPath(urlData.Url), "text/json", bytes.NewBuffer(urlBytes))
+
+	if err != nil {
+		return err
+	}
 
 	if r.StatusCode != 201 {
 		return errors.New("Cannot save url, got status code: " + r.Status)
