@@ -58,6 +58,10 @@ code {
     display: none;
 }
 
+.url-actions {
+    height: 20px;
+}
+
 .url-container {
-    height: 90px;
+    margin-bottom: 10px;
 }

@@ -14,8 +14,10 @@
             <i class="fa fa-tag"></i> {{ range $tag := $url.Tags }}<a href="/tag/{{ $tag }}">{{ $tag }}</a> {{ end }}
             {{ end }}
 
-            <div class="url-actions hidden">
-                <a class="btn" href="{{ $url.ManageTagsUri }}">Edit</a> <a class="btn text-danger" href="{{ $url.DeleteUri }}">Delete</a>
+            <div class="url-actions">
+                <span class="hidden">
+                    <a class="btn" href="{{ $url.ManageTagsUri }}">Edit</a> <a class="btn text-danger" href="{{ $url.DeleteUri }}">Delete</a>
+                </span>
             </div>
           </div>
       </div>
