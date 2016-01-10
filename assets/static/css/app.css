@@ -53,3 +53,11 @@ code {
 .always-wrap {
 	word-wrap: break-word;
 }
+
+.hidden {
+    display: none;
+}
+
+.url-container {
+    height: 90px;
+}
