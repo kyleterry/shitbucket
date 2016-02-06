@@ -439,6 +439,22 @@ func UrlsIndex(rend render.Render) {
 	rend.HTML(http.StatusOK, "index", context)
 }
 
+// "actions" or whatever you want to call it
+func APIIndex(rend render.Render) {
+	urls, err := fetchUrls()
+	if err != nil {
+		log.Println(err)
+	}
+	context := struct {
+		Urls  []Url
+		Count int
+	}{
+		Urls:  urls,
+		Count: len(urls),
+	}
+	rend.JSON(http.StatusOK, context)
+}
+
 func GetUrl(w http.ResponseWriter, rend render.Render, params martini.Params) {
 	urldata, err := getUrlDataFromHash(params["id"])
 	if err != nil {
@@ -698,6 +714,8 @@ func wrappedrun(bind string) error {
 	m.Group("/tag", func(r martini.Router) {
 		r.Get("/:id", GetTag)
 	})
+
+	m.Get("/api/urls", APIIndex)
 
 	return http.ListenAndServe(bind, m)
 }
