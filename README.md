@@ -1,5 +1,6 @@
 shitbucket
 ==========
+*NOT MAINTAINED: shitbucket has been replaced by [SUFR](https://github.com/kyleterry/sufr)*
 
 Really small, self-hosted, and vulgar URL bookmarker
 
